@@ -1,75 +1,58 @@
-# Создаем пустой словарь для всех рецептов
-cook_book = {}
+from pprint import pprint
+def load_cook_book(file_path):
+    cook_book = {}  
+    with open(file_path, 'r', encoding='utf-8') as file:
+        while True:
+            line = file.readline().strip() 
+            if not line:
+                break  
 
-# Открываем файл
-with open('recipes.txt', 'r', encoding='utf-8') as file:
-    lines = file.readlines()
+            recipe_name = line 
+            cook_book[recipe_name] = []  
 
-# Переменная для хранения текущего блюда
-current_recipe = None
+            num_ingredients = int(file.readline().strip()) 
+            for _ in range(num_ingredients):
+                ingredient_line = file.readline().strip() 
+                ingredient_name, quantity, measure = ingredient_line.split(' | ')
+                
+                cook_book[recipe_name].append({
+                    'ingredient_name': ingredient_name,
+                    'quantity': int(quantity),
+                    'measure': measure
+                })
 
-# Идем по всем строкам файла
-i = 0
-while i < len(lines):
-    line = lines[i].strip()
+            file.readline()  
     
-    # Если строка содержит название рецепта
-    if line.isalpha():
-        current_recipe = line
-        cook_book[current_recipe] = []  # Для каждого рецепта создаем пустой список для ингредиентов
-        i += 1
-        continue
-
-    # Если строка содержит количество ингредиентов
-    if line.isdigit():
-        num_ingredients = int(line)
-        for j in range(num_ingredients):
-            i += 1
-            ingredient_line = lines[i].strip()
-            ingredient, quantity, unit = ingredient_line.split(' | ')
-            # Добавляем ингредиент в список для текущего рецепта
-            cook_book[current_recipe].append({
-                'ingredient_name': ingredient,
-                'quantity': float(quantity),
-                'measure': unit
-            })
+    return cook_book  
+def get_shop_list_by_dishes(dishes, person_count, cook_book):
+    shop_list = {}  
     
-    i += 1
-
-# Выводим результат
-for recipe, ingredients in cook_book.items():
-    print(f"Рецепт: {recipe}")
-    for ingredient in ingredients:
-        print(f"  {ingredient['ingredient_name']}: {ingredient['quantity']} {ingredient['measure']}")
-    print()
-
-def get_shop_list_by_dishes(dishes, person_count):
-    shop_list = {}  # Словарь для хранения итогового списка покупок
-    
-    # Проходим по каждому блюду в списке dishes
-    for dish in dishes:
-        if dish in cook_book:  # Проверяем, есть ли такое блюдо в cook_book
-            ingredients = cook_book[dish]  # Получаем список ингредиентов для текущего блюда
-            for ingredient in ingredients:
-                ingredient_name = ingredient['ingredient_name']
-                quantity = ingredient['quantity'] * person_count  # Умножаем на количество персон
+    for dish in dishes:  
+        if dish in cook_book: 
+            for ingredient in cook_book[dish]:  
+                name = ingredient['ingredient_name']
+                quantity = ingredient['quantity'] * person_count  
                 measure = ingredient['measure']
                 
-                # Если ингредиент уже есть в итоговом списке, добавляем к его количеству
-                if ingredient_name in shop_list:
-                    shop_list[ingredient_name]['quantity'] += quantity
+                if name in shop_list:
+                    shop_list[name]['quantity'] += quantity
                 else:
-                    # Добавляем новый ингредиент в список покупок
-                    shop_list[ingredient_name] = {'quantity': quantity, 'measure': measure}
+                    shop_list[name] = {'quantity': quantity, 'measure': measure}
+        else:
+            print(f"Блюдо '{dish}' отсутствует в книге рецептов.")
     
-    return shop_list
+    return shop_list  
 
-# # Пример использования
-# dishes = ['Омлет', 'Утка по-пекински']  # Список выбранных блюд
-# person_count = 2  # Количество персон
 
-shopping_list = get_shop_list_by_dishes(dishes, person_count)
 
-# Выводим итоговый список покупок
+
+file_path = 'COOKBOOK/recipes.txt'  
+cook_book = load_cook_book(file_path)
+pprint(cook_book)
+
+dishes = ['Запеченный картофель', 'Омлет']
+person_count = 2
+shopping_list = get_shop_list_by_dishes(dishes, person_count, cook_book)
+
 for ingredient, details in shopping_list.items():
-    print(f"{ingredient}: {details['quantity']} {details['measure']}")
+    pprint(f"{ingredient}: {details['quantity']} {details['measure']}")
